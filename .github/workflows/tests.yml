@@ -1,11 +1,13 @@
 name: Integration tests
 
 # Headless live-driven integration suite for dasImguiImplot, mirroring
-# dasImguiNodeEditor's tests.yml. ImPlot depends on dasImgui, so CI checks out
-# BOTH packages and installs them in dependency order (dasImgui first — the
-# implot C++ module links dasModuleImgui and uses dasImgui's imgui headers,
-# see CMakeLists.txt). Tests run without a display server via the harness's
-# --headless arm (ImGui context with a CPU font atlas, no GLFW window/GL ctx);
+# dasImguiNodeEditor's tests.yml. ImPlot depends on dasImgui, which now lives
+# in the daslang tree itself (modules/dasImgui — borisbat/dasImgui is archived),
+# so CI checks out daslang + this overlay only; the imgui shared modules build
+# from the daslang superbuild (the implot C++ module links dasModuleImgui and
+# uses dasImgui's imgui headers, see CMakeLists.txt). Tests run without a
+# display server via the harness's --headless arm (ImGui context with a CPU
+# font atlas, no GLFW window/GL ctx);
 # the HTTP live-API (port 9090) still serves so the playwright /status+/command+
 # /shutdown flow is unchanged.
 #
@@ -52,12 +54,6 @@ jobs:
           repository: GaijinEntertainment/daScript
           path: daslang-src
           ref: master
-
-      - name: "Checkout dasImgui (dependency)"
-        uses: actions/checkout@v4
-        with:
-          repository: borisbat/dasImgui
-          path: dasImgui
 
       - name: "Checkout dasImguiImplot"
         uses: actions/checkout@v4
@@ -157,19 +153,14 @@ jobs:
           cmake --build ./build --parallel --target \
             daslang daslang-live \
             dasModuleLiveHost dasModuleGlfw dasModuleHV \
-            dasModulePUGIXML dasModuleStbImage
+            dasModulePUGIXML dasModuleStbImage \
+            dasModuleImgui imguiApp imguiAppHeadless
           sccache --show-stats
           echo "BIN_DIR=bin" >> "$GITHUB_ENV"
 
-      - name: "daspkg install dasImgui (global)"
-        # dasImgui first — the implot C++ module links dasModuleImgui and uses
-        # dasImgui's imgui headers (CMakeLists.txt resolves it as a sibling).
-        working-directory: daslang-src
-        run: |
-          set -eux
-          ${BIN_DIR}/daslang utils/daspkg/main.das -- install ../dasImgui --global
-
       - name: "daspkg install dasImguiImplot (global)"
+        # dasImgui is in-tree (modules/dasImgui, built above) — only the
+        # implot overlay itself needs a daspkg install.
         working-directory: daslang-src
         run: |
           set -eux

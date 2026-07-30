@@ -33,7 +33,7 @@ ELSE()
 get_filename_component(MODULES_DIR "${DAS_IMPLOT_DIR}" DIRECTORY)
 SET(DAS_IMGUI_DIR "${MODULES_DIR}/dasImgui")
 if(NOT EXISTS "${DAS_IMGUI_DIR}/src/cb_dasIMGUI.h")
-    message(FATAL_ERROR "dasImgui not found at ${DAS_IMGUI_DIR}. Install it first: daspkg install github.com/borisbat/dasImgui")
+    message(FATAL_ERROR "dasImgui not found at ${DAS_IMGUI_DIR}. dasImgui is part of the daslang tree (modules/dasImgui) — build daslang first, or point DASLANG_DIR at a daslang tree and install this package under its modules/ (daspkg install).")
 endif()
 
 # imgui headers (from dasImgui's FetchContent download)

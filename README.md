@@ -5,8 +5,9 @@
 plotting library for Dear ImGui, usable from daslang scripts.
 
 Sibling project to [dasImguiNodeEditor](https://github.com/borisbat/dasImguiNodeEditor);
-it depends on, but does not modify, [dasImgui](https://github.com/borisbat/dasImgui)
-— both can be loaded together.
+it depends on, but does not modify, dasImgui — which ships as part of the
+[daslang](https://github.com/GaijinEntertainment/daScript) tree itself
+(`modules/dasImgui`), so no separate dasImgui install is needed.
 
 ## Status
 
@@ -23,29 +24,31 @@ are in progress.
 
 ## Requirements
 
-- daslang SDK (with dynamic-module support)
-- [dasImgui](https://github.com/borisbat/dasImgui)
+- daslang SDK (with dynamic-module support) — dasImgui is part of the daslang
+  tree (`modules/dasImgui`), so building daslang provides it
 - CMake 3.16+, a C++17 compiler (MSVC / GCC / Clang)
 
 ## Build
 
-Via daspkg (installs dasImgui first, then builds this module):
+Via daspkg (dasImgui already ships with daslang; this builds just the overlay):
 
 ```
 daspkg install github.com/borisbat/dasImguiImplot
 ```
 
-Or configure the native module directly (dasImgui must be a sibling, already built):
+Or configure the native module directly (the package must sit next to
+`modules/dasImgui` in a daslang tree, with dasImgui already built):
 
 ```
 cmake -S . -B _build -DDASLANG_DIR=<daslang-sdk-root>
 cmake --build _build --config Release
 ```
 
-This produces `dasModuleImplot.shared_module`. Load it alongside dasImgui:
+This produces `dasModuleImplot.shared_module`. Load it (in-tree dasImgui
+resolves natively — no extra `-load_module` for it):
 
 ```
-daslang -load_module <path>/dasImgui -load_module <path>/dasImguiImplot script.das
+daslang -load_module <path>/dasImguiImplot script.das
 ```
 
 ## License

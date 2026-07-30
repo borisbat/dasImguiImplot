@@ -18,12 +18,14 @@ permissions:
   pages: write
   id-token: write
 
-# Layout mirrors tests.yml: daslang + dasImgui + dasImguiImplot are checked
-# out as siblings, then daspkg-installed --global in dependency order (dasImgui
-# first — the implot C++ module links dasModuleImgui and uses dasImgui's
-# imgui headers). implot2rst then requires the v2 modules so RTTI can
-# enumerate them, which needs both native .shared_modules built (hence the
-# installs) and dasHV/dasGLFW baked into daslang (the -D flags below).
+# Layout mirrors tests.yml: daslang (which contains dasImgui in-tree at
+# modules/dasImgui — borisbat/dasImgui is archived) + dasImguiImplot are
+# checked out, the imgui shared modules build from the daslang superbuild, and
+# the overlay is daspkg-installed --global (the implot C++ module links
+# dasModuleImgui and uses dasImgui's imgui headers). implot2rst then requires
+# the v2 modules so RTTI can enumerate them, which needs the native
+# .shared_modules built (hence the build targets + the install) and
+# dasHV/dasGLFW baked into daslang (the -D flags below).
 #
 # Split into build + deploy jobs (same reason as dasImgui's docs.yml): attaching
 # `environment: github-pages` to a job triggers GitHub's deployment-branch
@@ -45,13 +47,6 @@ jobs:
           repository: GaijinEntertainment/daScript
           path: daslang-src
           ref: master
-
-      - name: "Checkout dasImgui (dependency)"
-        uses: actions/checkout@v4
-        with:
-          # Path basename becomes the daspkg install dir basename.
-          repository: borisbat/dasImgui
-          path: dasImgui
 
       - name: "Checkout dasImguiImplot"
         uses: actions/checkout@v4
@@ -93,13 +88,14 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=sccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
             -G Ninja
-          cmake --build ./build --parallel --target daslang
+          cmake --build ./build --parallel --target \
+            daslang dasModuleImgui imguiApp imguiAppHeadless
           sccache --show-stats
 
       - name: "Lint changed .das files"
-        # Mirrors dasImgui's docs.yml lint step, with both modules on the load
-        # path so the implot `require imgui/...` chain resolves without a daspkg
-        # install. (Unlike the node editor, implot ships no consumer lint rule.)
+        # The implot `require imgui/...` chain resolves natively from the in-tree
+        # dasImgui module; only the overlay itself needs -load_module. (Unlike
+        # the node editor, implot ships no consumer lint rule.)
         working-directory: ${{ github.workspace }}/dasImguiImplot
         run: |
           set -eux
@@ -114,21 +110,13 @@ jobs:
           echo "linting ${#CHANGED[@]} file(s): ${CHANGED[*]}"
           # Serial (-j 1): parallel workers don't propagate -load_module.
           ${{ github.workspace }}/daslang-src/bin/daslang \
-            -load_module ${{ github.workspace }}/dasImgui \
             -load_module ${{ github.workspace }}/dasImguiImplot \
             ${{ github.workspace }}/daslang-src/utils/lint/main.das -- \
             "${CHANGED[@]}" --quiet -j 1
 
-      - name: "daspkg install dasImgui (global)"
-        # dasImgui first — the implot C++ module links dasModuleImgui and uses
-        # dasImgui's imgui headers (CMakeLists resolves it as a sibling).
-        run: |
-          set -eux
-          ${{ github.workspace }}/daslang-src/bin/daslang \
-            ${{ github.workspace }}/daslang-src/utils/daspkg/main.das -- \
-            install ${{ github.workspace }}/dasImgui --global
-
       - name: "daspkg install dasImguiImplot (global)"
+        # dasImgui is in-tree (modules/dasImgui, built above) — only the
+        # implot overlay itself needs a daspkg install.
         run: |
           set -eux
           ${{ github.workspace }}/daslang-src/bin/daslang \

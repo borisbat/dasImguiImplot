@@ -3,7 +3,7 @@
 dasImguiImplot is the daslang binding + boost-v2 wrapper layer for
 [ImPlot](https://github.com/epezent/implot) (v0.16, vendored), an immediate-mode
 plotting library for Dear ImGui. It is built **on top of
-[dasImgui](https://github.com/borisbat/dasImgui)** and mirrors its conventions —
+dasImgui** (part of the daslang tree, `modules/dasImgui`) and mirrors its conventions —
 `[container]` macros, the snapshot/telemetry rail, the `imgui_harness` lifecycle,
 dastest integration tests, and the `daslang-live` HTTP driver. **Read dasImgui's
 `CLAUDE.md` first** for all of that shared machinery; this file documents only what is
@@ -135,7 +135,7 @@ daslang-live subprocesses else pop real windows and flake). Mixed dir: dastest r
 `[test]` files and in-process `def main : int` smokes (exit-0 = PASS) side by side.
 
 ```
-daslang -load_module D:/DASPKG/dasImgui -load_module D:/DASPKG/dasImguiImplot \
+daslang -load_module D:/DASPKG/dasImguiImplot \
   D:/Work/daScript/dastest/dastest.das -- --test modules/dasImguiImplot/tests/integration \
   --timeout 600 --isolated-mode --isolated-mode-threads 4 --headless
 ```
@@ -143,7 +143,8 @@ daslang -load_module D:/DASPKG/dasImgui -load_module D:/DASPKG/dasImguiImplot \
 CI: `.github/workflows/tests.yml` (ubuntu/macos; Windows deferred — builds + passes
 locally under MSVC, opportunistic re-enable) + `docs.yml` (lint changed `.das` →
 `utils/implot2rst.das` → stub/Uncategorized gates → `sphinx-build -W` → Pages on master).
-Both `daspkg install ../dasImgui` THEN `../dasImguiImplot` (dependency order).
+Both workflows `daspkg install ../dasImguiImplot` only — dasImgui is in-tree
+(`modules/dasImgui`, built by the daslang superbuild).
 
 **Test helpers (`imgui_implot_playwright`)** — `implot_open(app, plot_path)` returns a
 `PlotSession {app, plot}` (just the pair — ImPlot is stateless, no handle); readers pull
