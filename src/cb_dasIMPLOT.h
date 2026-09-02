@@ -30,19 +30,12 @@ struct implotTempFn {
                 fn->result->temporary = true;
             }
         }
-        bool anyString = false;
         for ( auto &arg : fn->arguments ) {
             if ( arg->type->constant && arg->type->ref && !arg->type->isArray() ) {
                 if ( arg->type->baseType == Type::tFloat2 || arg->type->baseType == Type::tFloat4 ) {
                     arg->type->ref = false;
                 }
             }
-            if ( arg->type->isString() && !arg->type->ref ) {
-                anyString = true;
-            }
-        }
-        if (anyString) {
-            fn->needStringCast = true;
         }
         return true;
     }
