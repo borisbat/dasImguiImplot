@@ -27,7 +27,7 @@ def test_bar_groups_and_pie(t : T?) {
                      "BARS plot (plot_bar_groups) rendered")
         // Limits pinned with ImPlotCond.Always in the tutorial — converging proves the
         // labelled-series item submitted (the scope ran past plot_bar_groups, not before).
-        var lsnap = wait_for_axis_limits(bars, -0.5lf, double(4) - 0.5lf, 0.0lf, 18.0lf)
+        var lsnap = wait_for_axis_limits(bars, -0.5lf, 4.0lf - 0.5lf, 0.0lf, 18.0lf)
         t |> success(lsnap != null, "BARS axis limits converged to the pinned range")
 
         let pie = implot_open(d, "PLOT_WIN/PIE")
